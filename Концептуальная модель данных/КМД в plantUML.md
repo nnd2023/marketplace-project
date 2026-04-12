@@ -83,6 +83,9 @@ class Reviews {
 class Returns {
 }
 
+class WarehouseStocks {
+}
+
 ' === Связи ===
 
 ' ClientUsers -> роли
@@ -121,32 +124,39 @@ Managers --> Returns : "утверждает"
 Carts --> CartItems : "хранит"
 Carts --> Orders : "создает"
 
-Orders --> OrderItems : "содержит"
-Orders --> DeliveryItems : "создает"
+CartItems --> ProductReserves : "создает"
 
-DeliveryItems --> DeliveryOrders : "формирует"
+Orders --> OrderItems : "содержит"
+Orders --> PaymentOrders : "создает"
+
 DeliveryOrders --> DeliveryAddresses : "относится к"
+DeliveryOrders --> DeliveryItems : "состоит из"
+
+OrderItems --> ProductVariants : "ссылается"
+OrderItems --> DeliveryItems : "создает"
+OrderItems --> ProductReserves : "утвержадет"
 
 ' Платежи и уведомления
 PaymentOrders --> Notifications : "создает"
+
 
 ' Товарный каталог
 Products --> ProductVariants : "включает в себя"
 Products --> Categories : "наполняют"
 
-ProductVariants --> WarehouseAddresses : "хранится"
+ProductVariants --> WarehouseStocks : "относятся"
 ProductVariants --> CartItems : "порождает"
 Reviews --> ProductVariants : "относится к"
-
-Categories --> CartItems : "классифицируют"
+WarehouseStocks --> WarehouseAddresses : "хранится"
 
 ' Резервы и уведомления
 ProductReserves --> Notifications : "создает"
-ProductReserves --> ProductVariants : "занимает"
+ProductReserves --> WarehouseStocks : "блокирует"
 
 
 ' Возвраты и уведомления
 Returns --> Notifications : "создает"
+Returns --> OrderItems : "относится к"
 
 ' Уведомления клиентам
 Notifications --> ClientUsers : "направляет"
