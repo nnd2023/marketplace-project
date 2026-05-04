@@ -1,174 +1,68 @@
 @startuml
+title Концептуальная модель данных Маркетплейса (Final)
 
 skinparam linetype ortho
 skinparam style strictuml
 skinparam classAttributeIconSize 0
 hide empty members
-skinparam nodesep 80
-skinparam ranksep 100
-' === Сущности (классы) ===
+skinparam nodesep 70
+skinparam ranksep 150
 
-class ClientUsers {
+package "Пользователи и Кабинеты" {
+    class UserAccount <<Entity>>
+    class UserRole <<Entity>>
+    class SellerStore <<Entity>>
 }
 
-class ServiceUsers {
+package "Товарный каталог" {
+    class ProductCategory <<Entity>>
+    class Product <<Entity>>
+    class MediaAsset <<Entity>>
 }
 
-class Customers {
+package "Заказ и Логистика" {
+    class Order <<Entity>>
+    class OrderItem <<Entity>>
+    class Shipment <<Entity>>
 }
 
-class Sellers {
+package "Финансы" {
+    class Payment <<Entity>>
+    class Payout <<Entity>>
 }
 
-class Admins {
+package "Коммуникации и Репутация" {
+    class Review <<Entity>>
+    class Dispute <<Entity>>
+    class Notification <<Entity>>
 }
 
-class Moderators {
-}
+' === Связи сущностей ===
+UserAccount --> UserRole : имеет
+UserAccount --> SellerStore : управляет
+UserAccount --> Order : размещает
 
-class Supports {
-}
+SellerStore --> Product : публикует
+Product --> MediaAsset : содержит
+Product --> ProductCategory : принадлежит
+ProductCategory --> ProductCategory : образует иерархию
 
-class Couriers {
-}
+Order --> OrderItem : состоит из
+Order --> Payment : требует
+OrderItem --> Product : резервирует
+Shipment --> OrderItem : агрегирует
 
-class Managers {
-}
+UserAccount --> Review : публикует
+Review --> Product : оценивает
+Review --> SellerStore : оценивает
 
-class Carts {
-}
+UserAccount --> Dispute : инициирует
+Dispute --> OrderItem : относится к
 
-class CartItems {
-}
+Notification --> UserAccount : доставляется
 
-class Orders {
-}
-
-class OrderItems {
-}
-
-class PaymentOrders {
-}
-
-class DeliveryItems {
-}
-
-class DeliveryOrders {
-}
-
-class DeliveryAddresses {
-}
-
-class WarehouseAddresses {
-}
-
-class Products {
-}
-
-class ProductVariants {
-}
-
-class Categories {
-}
-
-class ProductReserves {
-}
-
-class Notifications {
-}
-
-class Reviews {
-}
-
-class Returns {
-}
-
-class WarehouseStocks {
-}
-
-class SellerTransaction {
-}
-' === Связи ===
-
-' ClientUsers -> роли
-ClientUsers --|> Customers : "имеет профиль"
-ClientUsers --|> Sellers : "имеет профиль"
-
-' ServiceUsers -> роли
-ServiceUsers --|> Admins : "имеет профиль"
-ServiceUsers --|> Moderators : "имеет профиль"
-ServiceUsers --|> Supports : "имеет профиль"
-ServiceUsers --|> Couriers : "имеет профиль"
-ServiceUsers --|> Managers : "имеет профиль"
-
-' Действия ролей
-Customers --> Carts : "управляет"
-Customers --> PaymentOrders : "исполняет"
-Customers --> DeliveryAddresses : "имеет"
-Customers --> Returns : "создает"
-Customers --> Reviews : "создает"
-
-Sellers --> Products : "продает"
-Sellers --> WarehouseAddresses : "имеет"
-
-Admins --> Categories : "создает"
-
-Moderators --> Reviews : "согласовывает"
-'Moderators --> Returns : "согласовывает"
-
-Supports --> Returns : "согласовывает"
-
-Couriers --> DeliveryOrders : "реализует"
-
-Managers --> Returns : "утверждает"
-
-' Корзина и заказы
-Carts --> CartItems : "хранит"
-Carts --> Orders : "создает"
-
-CartItems --> ProductReserves : "создает"
-CartItems --> ProductVariants : "ссылается"
-
-Orders --> OrderItems : "содержит"
-Orders --> PaymentOrders : "создает"
-
-DeliveryOrders --> DeliveryAddresses : "относится к"
-DeliveryOrders --> DeliveryItems : "состоит из"
-DeliveryOrders --> Orders : "относится к"
-
-DeliveryItems --> WarehouseAddresses : "относится к"
-
-OrderItems --> ProductVariants : "ссылается"
-OrderItems --> DeliveryItems : "создает"
-OrderItems --> ProductReserves : "утвержадет"
-
-' Платежи и уведомления
-PaymentOrders --> Notifications : "создает"
-PaymentOrders --> SellerTransaction : "создает"
-SellerTransaction --> Sellers : "пренадледжит"
-
-' Товарный каталог
-Products --> ProductVariants : "включает в себя"
-Products --> Categories : "относится к"
-
-WarehouseStocks --> ProductVariants : "относятся к"
-
-Reviews --> ProductVariants : "относится к"
-WarehouseStocks --> WarehouseAddresses : "хранится"
-
-' Резервы и уведомления
-ProductReserves --> Notifications : "создает"
-ProductReserves --> WarehouseStocks : "блокирует"
-
-
-' Возвраты и уведомления
-Returns --> Notifications : "создает"
-Returns --> OrderItems : "относится к"
-
-' Уведомления клиентам
-Notifications --> ClientUsers : "направляет"
-Notifications --> ServiceUsers : "направляет"
-
+SellerStore --> Payout : получает
+Payout --> Payment : формируется из
 @enduml
 
 
