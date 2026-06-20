@@ -17,10 +17,16 @@ System_Ext(BankSystem, "Банковская система / ФНС", "Масс
 System_Ext(CDNStorage, "Файловое хранилище (CDN/S3)", "Хранение и доставка медиа-контента")
 
 System_Boundary(Marketplace, "Платформа Маркетплейс") {
-    Container(WebApp, "Веб-приложение (SPA)", "React/TypeScript", "Единый адаптивный интерфейс для всех ролей")
-    Container(MobileApp, "Мобильное приложение", "Flutter", "Клиент для покупателей и курьеров")
     Container(APIGateway, "API Gateway", "Kong/Nginx", "Маршрутизация, JWT-аутентификация, rate-limiting, SSL termination")
     Container(MessageBroker, "Message Broker", "RabbitMQ/Kafka", "Асинхронная шина событий (OrderCreated, PaymentCompleted и т.д.)")
+
+
+Container_Boundary(frontend, "Клиентские приложения") {
+        Container(WebCustomer, "Веб-приложение покупателя", "SPA (React/Vue)", "Поиск, корзина, оформление заказа, личный кабинет")
+        Container(WebSeller, "Портал продавца", "SPA (React/Vue)", "Управление каталогом, заказами, финансами, отзывами")
+        Container(WebAdmin, "Админ-панель персонала", "SPA (React/Angular)", "Модерация, управление логистикой, финансами, поддержкой")
+        Container(MobileApp, "Мобильное приложение", "iOS/Android (Flutter)", "Покупки, трекинг, push-уведомления")
+    }
 
     Container_Boundary(UsersBoundary, "Пользователи и Кабинеты") {
         Container(AuthAPI, "Auth & User API", "Go/REST", "Регистрация, вход, управление ролями, профили продавцов")
@@ -54,15 +60,17 @@ System_Boundary(Marketplace, "Платформа Маркетплейс") {
 }
 
 ' === Связи: Акторы -> UI ===
-Rel(Customer, WebApp, "Просматривает каталог, оформляет заказы")
-Rel(Customer, MobileApp, "Делает покупки, получает Push")
-Rel(Seller, WebApp, "Управляет товарами, запрашивает выплаты")
-Rel(Staff, WebApp, "Модерирует контент, управляет логистикой")
-Rel(Staff, MobileApp, "Работа курьера (статусы доставки)")
+Rel(Customer, WebCustomer, "Использует", "HTTPS")
+Rel(Customer, MobileApp, "Использует", "HTTPS")
+Rel(Seller, WebSeller, "Использует", "HTTPS")
+Rel(Staff, WebAdmin, "Использует", "HTTPS")
 
 ' === Связи: UI -> Gateway -> API ===
-Rel(WebApp, APIGateway, "HTTPS/REST")
-Rel(MobileApp, APIGateway, "HTTPS/REST")
+Rel(WebCustomer, APIGateway, "REST/GraphQL", "HTTPS")
+Rel(WebSeller, APIGateway, "REST/GraphQL", "HTTPS")
+Rel(WebAdmin, APIGateway, "REST/GraphQL", "HTTPS")
+Rel(MobileApp, APIGateway, "REST/GraphQL", "HTTPS")
+
 
 Rel(APIGateway, AuthAPI, "Forward auth & user requests")
 Rel(APIGateway, CatalogAPI, "Forward catalog requests")
