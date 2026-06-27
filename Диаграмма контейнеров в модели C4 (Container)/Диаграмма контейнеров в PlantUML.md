@@ -2,21 +2,18 @@
 !include <C4/C4_Container.puml>
 HIDE_STEREOTYPE()
 
-title Контейнерная диаграмма (C4 Container) Маркетплейса
+title Контейнерная диаграмма (C4 Container) Системы
 
 ' === Акторы ===
 Person(Customer, "Покупатель", "Использует веб-браузер или мобильное приложение")
 Person(Seller, "Продавец", "Использует личный кабинет продавца")
-Person(Staff, "Персонал маркетплейса", "Использует внутренние веб-интерфейсы и приложение курьера")
+Person(Staff, "Персонал системы", "Использует внутренние веб-интерфейсы и приложение курьера")
 
 ' === Внешние системы ===
-System_Ext(PaymentGateway, "Платежный шлюз", "Эквайринг и валидация карт")
-System_Ext(LogisticsAPI, "Служба доставки", "Расчёт сроков, API трекинга")
-System_Ext(NotificationSvc, "Сервис уведомлений", "SMS, Email и Push-шлюзы")
-System_Ext(BankSystem, "Банковская система / ФНС", "Массовые выплаты и фискализация")
-System_Ext(CDNStorage, "Файловое хранилище (CDN/S3)", "Хранение и доставка медиа-контента")
 
-System_Boundary(Marketplace, "Платформа Маркетплейс") {
+
+
+System_Boundary(Marketplace, "Платформа Системы") {
     Container(APIGateway, "API Gateway", "Kong/Nginx", "Маршрутизация, JWT-аутентификация, rate-limiting, SSL termination")
     Container(MessageBroker, "Message Broker", "RabbitMQ/Kafka", "Асинхронная шина событий (OrderCreated, PaymentCompleted и т.д.)")
 
@@ -37,18 +34,26 @@ Container_Boundary(frontend, "Клиентские приложения") {
         Container(CatalogAPI, "Catalog API", "Python/FastAPI", "CRUD товаров, категорий, управление ценами и остатками")
         ContainerDb(CatalogDB, "Catalog DB", "PostgreSQL", "Схемы: ProductCategory, Product, MediaAsset (метаданные)")
         Container(SearchEngine, "Search Engine", "Elasticsearch", "Индексирование, полнотекстовый поиск, фасетная фильтрация")
+    ' === Внешние интеграции ===
+        System_Ext(CDNStorage, "Файловое хранилище (CDN/S3)", "Хранение и доставка медиа-контента")
     }
 
     Container_Boundary(OrdersBoundary, "Заказ и Логистика") {
         Container(OrderAPI, "Order & Cart API", "Java/Spring Boot", "Корзина, checkout, статусная модель заказов")
         ContainerDb(OrdersDB, "Orders DB", "PostgreSQL", "Схемы: Order, OrderItem, Shipment")
         Container(LogisticsWorker, "Logistics Worker", "Python/Celery", "Фоновая синхронизация трекинг-номеров и статусов")
+    ' === Внешние интеграции ===
+        System_Ext(LogisticsAPI, "Служба доставки", "Расчёт сроков, API трекинга")
+    
     }
 
     Container_Boundary(FinanceBoundary, "Платежи и Финансы") {
         Container(FinanceAPI, "Finance API", "Java/Spring Boot", "Приём платежей, расчёт комиссий, управление выплатами")
         ContainerDb(FinanceDB, "Finance DB", "PostgreSQL", "Схемы: Payment, Payout, PayoutItem")
         Container(PayoutScheduler, "Payout Scheduler", "Quartz/Cron", "Пакетная генерация реестров для массовых выплат")
+    ' === Внешние интеграции ===
+        System_Ext(PaymentGateway, "Платежный шлюз", "Эквайринг и валидация карт")
+        System_Ext(BankSystem, "Банковская система / ФНС", "Массовые выплаты и фискализация")
     }
 
     Container_Boundary(EngagementBoundary, "Коммуникации и Репутация") {
@@ -56,6 +61,8 @@ Container_Boundary(frontend, "Клиентские приложения") {
         ContainerDb(ReputationDB, "Reputation DB", "PostgreSQL", "Схемы: Review, Dispute")
         Container(NotificationWorker, "Notification Service", "Go/gRPC", "Рендеринг шаблонов, маршрутизация по каналам, логирование")
         ContainerDb(NotifDB, "Notifications DB", "PostgreSQL", "Схема: Notification, история отправок")
+    ' === Внешние интеграции ===
+        System_Ext(NotificationSvc, "Сервис уведомлений", "SMS, Email и Push-шлюзы")
     }
 }
 
